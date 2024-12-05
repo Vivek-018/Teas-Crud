@@ -1,15 +1,32 @@
 import "dotenv/config";
 import express from "express";
+import logger from "./logger.js";
+import morgan from "morgan";
 
 const port = process.env.PORT || 3000;
 const app = express();
 //tasks
 // backend deploy to render
 // morgan and winston looger setup and study
-//  push code to github
+const morganFormat = ":method :url :status :response-time ms";
 
-
+// middleware
 app.use(express.json());
+app.use(
+  morgan(morganFormat, {
+    stream: {
+      write: (message) => {
+        const logObject = {
+          method: message.split(" ")[0],
+          url: message.split(" ")[1],
+          status: message.split(" ")[2],
+          responseTime: message.split(" ")[3],
+        };
+        logger.info(JSON.stringify(logObject));
+      },
+    },
+  })
+);
 
 let teaData = [];
 let nextId = 1;
@@ -81,6 +98,10 @@ app.delete("/teaData/:id", (req, res) => {
   return res.status(200).json({
     data: leftdata,
   });
+});
+
+app.get("/", (req, res) => {
+  res.send("hello welcome to our tea shop");
 });
 
 app.listen(port, () => {
